@@ -41,31 +41,27 @@
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
             public string ControlName;
 
-            public IntPtr ControlHandle;
+            public long ControlHandle;
 
-            public IntPtr Sender;
+            public long Sender;
         }
 
         protected override void WndProc(ref Message m)
         {
             if (m.Msg == WM_COPYDATA)
             {
-                // Extract the file name
                 var copyData = (COPYDATASTRUCT)Marshal.PtrToStructure(m.LParam, typeof(COPYDATASTRUCT));
                 var dataType = (int)copyData.dwData;
                 if (dataType == 2)
                 {
                     var txt = Marshal.PtrToStructure<SendData>(copyData.lpData);
 
-                    var ctrl = Control.FromHandle(txt.ControlHandle);
+                    var sender = new IntPtr(txt.Sender);
+                    var controlHandle = new IntPtr(txt.ControlHandle);
 
-                    this.Send(txt.Sender, txt.ControlHandle, ctrl?.Name);
-                
-                    this.textBox.Text = ctrl?.Name ?? "<not found>";
-                }
-                else
-                {
-                    MessageBox.Show($"Unknown data type {dataType}");
+                    var ctrl = Control.FromHandle(controlHandle);
+                    
+                    this.Send(sender, controlHandle, ctrl?.Name);
                 }
             }
             else
@@ -83,15 +79,22 @@
 
         private void Send(IntPtr receiver, IntPtr controlHandle, string controlName)
         {
-            var data = new SendData {Sender = this.Handle, ControlHandle = controlHandle, ControlName = controlName};
+            var data = new SendData {Sender = this.Handle.ToInt64(), ControlHandle = controlHandle.ToInt64(), ControlName = controlName};
+            var dataPtr = IntPtrAlloc(data);
 
-            var copyData = new COPYDATASTRUCT();
-            copyData.dwData = new IntPtr(2);
-            copyData.cbData = Marshal.SizeOf(data);
-            copyData.lpData = IntPtrAlloc(data);
+            var copyData = new COPYDATASTRUCT
+            {
+                dwData = new IntPtr(2),
+                cbData = Marshal.SizeOf(data),
+                lpData = dataPtr
+            };
+
             var ptrCopyData = IntPtrAlloc(copyData);
 
             SendMessage(receiver, WM_COPYDATA, IntPtr.Zero, ptrCopyData);
+
+            Marshal.FreeHGlobal(dataPtr);
+            Marshal.FreeHGlobal(ptrCopyData);
         }
     }
 }
