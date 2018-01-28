@@ -33,10 +33,10 @@
             System.Windows.Forms.Label lblGroupBoxHwndCaption;
             this.textBox = new System.Windows.Forms.TextBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.groupBox = new System.Windows.Forms.GroupBox();
             this.tbFormHwnd = new System.Windows.Forms.TextBox();
             this.tbTextBoxHwnd = new System.Windows.Forms.TextBox();
             this.tbGroupBoxHwnd = new System.Windows.Forms.TextBox();
+            this.groupBox = new System.Windows.Forms.GroupBox();
             lblFormHwndCaption = new System.Windows.Forms.Label();
             lblTextBoxHwndCaption = new System.Windows.Forms.Label();
             lblGroupBoxHwndCaption = new System.Windows.Forms.Label();
@@ -68,6 +68,18 @@
             lblTextBoxHwndCaption.Text = "TextBox HWND";
             lblTextBoxHwndCaption.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
+            // lblGroupBoxHwndCaption
+            // 
+            lblGroupBoxHwndCaption.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            lblGroupBoxHwndCaption.AutoSize = true;
+            lblGroupBoxHwndCaption.Location = new System.Drawing.Point(3, 53);
+            lblGroupBoxHwndCaption.Name = "lblGroupBoxHwndCaption";
+            lblGroupBoxHwndCaption.Padding = new System.Windows.Forms.Padding(5);
+            lblGroupBoxHwndCaption.Size = new System.Drawing.Size(116, 23);
+            lblGroupBoxHwndCaption.TabIndex = 4;
+            lblGroupBoxHwndCaption.Text = "GroupBox HWND";
+            lblGroupBoxHwndCaption.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
             // textBox
             // 
             this.textBox.Location = new System.Drawing.Point(19, 39);
@@ -96,28 +108,6 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(408, 109);
             this.tableLayoutPanel1.TabIndex = 1;
             // 
-            // lblGroupBoxHwndCaption
-            // 
-            lblGroupBoxHwndCaption.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            lblGroupBoxHwndCaption.AutoSize = true;
-            lblGroupBoxHwndCaption.Location = new System.Drawing.Point(3, 53);
-            lblGroupBoxHwndCaption.Name = "lblGroupBoxHwndCaption";
-            lblGroupBoxHwndCaption.Padding = new System.Windows.Forms.Padding(5);
-            lblGroupBoxHwndCaption.Size = new System.Drawing.Size(116, 23);
-            lblGroupBoxHwndCaption.TabIndex = 4;
-            lblGroupBoxHwndCaption.Text = "GroupBox HWND";
-            lblGroupBoxHwndCaption.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // groupBox
-            // 
-            this.groupBox.Controls.Add(this.textBox);
-            this.groupBox.Location = new System.Drawing.Point(12, 12);
-            this.groupBox.Name = "groupBox";
-            this.groupBox.Size = new System.Drawing.Size(370, 100);
-            this.groupBox.TabIndex = 2;
-            this.groupBox.TabStop = false;
-            this.groupBox.Text = "groupBox";
-            // 
             // tbFormHwnd
             // 
             this.tbFormHwnd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
@@ -145,6 +135,16 @@
             this.tbGroupBoxHwnd.Size = new System.Drawing.Size(280, 20);
             this.tbGroupBoxHwnd.TabIndex = 7;
             // 
+            // groupBox
+            // 
+            this.groupBox.Controls.Add(this.textBox);
+            this.groupBox.Location = new System.Drawing.Point(12, 12);
+            this.groupBox.Name = "groupBox";
+            this.groupBox.Size = new System.Drawing.Size(370, 100);
+            this.groupBox.TabIndex = 2;
+            this.groupBox.TabStop = false;
+            this.groupBox.Text = "groupBox";
+            // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -152,7 +152,9 @@
             this.ClientSize = new System.Drawing.Size(466, 261);
             this.Controls.Add(this.groupBox);
             this.Controls.Add(this.tableLayoutPanel1);
+            this.Location = new System.Drawing.Point(500, 500);
             this.Name = "TestForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Test form";
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();

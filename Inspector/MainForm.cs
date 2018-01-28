@@ -1,6 +1,8 @@
 ﻿namespace Inspector
 {
     using System;
+    using System.Diagnostics;
+    using System.Runtime.InteropServices;
     using System.Windows.Forms;
 
     public partial class MainForm : Form
@@ -51,6 +53,25 @@
 
             this.overlay?.Close();
             this.mouseHook?.Dispose();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            var receiver = Process.GetProcessesByName("TestApplication")[0].MainWindowHandle;
+
+            var txt = "Pokus: " + DateTime.Now;
+            
+            var copyData = new Native.COPYDATASTRUCT();
+            copyData.dwData = new IntPtr(2);
+            copyData.cbData = txt.Length + 1;
+            copyData.lpData = Marshal.StringToHGlobalAnsi(txt);
+
+            // Allocate memory for the data and copy
+            var ptrCopyData = Marshal.AllocCoTaskMem(Marshal.SizeOf(copyData));
+            Marshal.StructureToPtr(copyData, ptrCopyData, false);
+
+            // Send the message
+            Native.SendMessage(receiver, Native.WM_COPYDATA, IntPtr.Zero, ptrCopyData);
         }
     }
 }
