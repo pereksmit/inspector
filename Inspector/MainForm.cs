@@ -48,8 +48,6 @@
             base.OnLoad(e);
 
             this.overlay.Show();
-
-            this.Text = this.Handle.ToString();
         }
 
         protected override void OnClosed(EventArgs e)
@@ -74,14 +72,13 @@
             // ReSharper disable once FieldCanBeMadeReadOnly.Local
             public string ControlName;
 
-            public long ControlHandle;
-
-            public long Sender;
+            public IntPtr ControlHandle;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            this.Send(IntPtr.Zero);
+            var mwh = Process.GetProcessesByName("TestApplication")[0].MainWindowHandle;
+            this.Send(mwh);
         }
 
         private void Send(IntPtr controlHandle)
@@ -97,11 +94,10 @@
             }
 
             var receiver = process.MainWindowHandle;
+            //var receiver = controlHandle;
 
-            var data = new SendData { Sender = this.Handle.ToInt64(), ControlHandle = controlHandle.ToInt64() };
+            var data = new SendData { ControlHandle = controlHandle };
             var dataPtr = IntPtrAlloc(data);
-
-            this.textBox1.Text = data.Sender.ToString("X");
 
             var copyData = new Native.COPYDATASTRUCT
             {
@@ -112,7 +108,7 @@
 
             var ptrCopyData = IntPtrAlloc(copyData);
 
-            Native.SendMessage(receiver, Native.WM_COPYDATA, IntPtr.Zero, ptrCopyData);
+            Native.SendMessage(receiver, Native.WM_COPYDATA, this.Handle, ptrCopyData);
 
             Marshal.FreeHGlobal(dataPtr);
             Marshal.FreeHGlobal(ptrCopyData);
@@ -135,5 +131,41 @@
                 base.WndProc(ref m);
             }
         }
+
+        public static T FindWindow<T>(Predicate<T> match) where T : Form
+        {
+            T result = null;
+
+            foreach (ProcessThread thread in Process.GetCurrentProcess().Threads)
+            {
+                Native.EnumThreadWindows(
+                    thread.Id,
+                    (hwnd, lParam) =>
+                    {
+                        if (result != null)
+                        {
+                            return true;
+                        }
+
+                        var ctrl = Control.FromHandle(hwnd) as T;
+                        if (ctrl == null)
+                        {
+                            return true;
+                        }
+
+                        var m = match(ctrl);
+                        if (m)
+                        {
+                            result = ctrl;
+                        }
+
+                        return true;
+                    },
+                    IntPtr.Zero);
+            }
+
+            return result;
+        }
+
     }
 }

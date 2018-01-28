@@ -10,6 +10,8 @@ namespace Inspector
     {
         public delegate IntPtr HookDelegate(int code, IntPtr wParam, IntPtr lParam);
 
+        public delegate bool EnumWindowsCallback(IntPtr hWnd, IntPtr lParam);
+
         public const int WH_MOUSE_LL = 14;
 
         public const int WS_EX_TRANSPARENT = 0x20;
@@ -38,6 +40,10 @@ namespace Inspector
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool EnumThreadWindows(int dwThreadId, EnumWindowsCallback lpfn, IntPtr lParam);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct POINT

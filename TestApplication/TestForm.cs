@@ -41,9 +41,7 @@
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
             public string ControlName;
 
-            public long ControlHandle;
-
-            public long Sender;
+            public IntPtr ControlHandle;
         }
 
         protected override void WndProc(ref Message m)
@@ -56,8 +54,8 @@
                 {
                     var txt = Marshal.PtrToStructure<SendData>(copyData.lpData);
 
-                    var sender = new IntPtr(txt.Sender);
-                    var controlHandle = new IntPtr(txt.ControlHandle);
+                    var sender = m.WParam; //new IntPtr(txt.Sender);
+                    var controlHandle = txt.ControlHandle;
 
                     var ctrl = Control.FromHandle(controlHandle);
                     
@@ -79,7 +77,7 @@
 
         private void Send(IntPtr receiver, IntPtr controlHandle, string controlName)
         {
-            var data = new SendData {Sender = this.Handle.ToInt64(), ControlHandle = controlHandle.ToInt64(), ControlName = controlName};
+            var data = new SendData {ControlHandle = controlHandle, ControlName = controlName};
             var dataPtr = IntPtrAlloc(data);
 
             var copyData = new COPYDATASTRUCT
