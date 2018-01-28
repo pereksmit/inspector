@@ -30,6 +30,11 @@
 
         public void Hook()
         {
+            if (this.hook != IntPtr.Zero)
+            {
+                return;
+            }
+
             this.hookDelegate = this.MouseHookProc;
             var mainModuleHandle = Marshal.GetHINSTANCE(Assembly.GetExecutingAssembly().GetModules()[0]);
 

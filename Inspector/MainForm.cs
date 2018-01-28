@@ -10,6 +10,8 @@
 
         private readonly OverlayForm overlay;
 
+        private IntPtr lastPtr;
+
         public MainForm()
         {
             this.InitializeComponent();
@@ -38,6 +40,8 @@
             this.overlay.ControlBounds = e.ControlRectangle;
             this.overlay.Invalidate();
 
+            this.lastPtr = e.Hwnd;
+            this.textBox1.Clear();
             this.Send(e.Hwnd);
         }
 
@@ -77,7 +81,7 @@
             };
 
             var ptrCopyData = IntPtrAlloc(copyData);
-
+            
             Native.SendMessage(receiver, Native.WM_COPYDATA, this.Handle, ptrCopyData);
 
             Marshal.FreeHGlobal(dataPtr);
@@ -93,7 +97,12 @@
                 if (dataType == MessageIdentifier)
                 {
                     var sendData = Marshal.PtrToStructure<SendData>(copyData.lpData);
-                    this.textBox1.Text = sendData.ControlName;
+                    if (sendData.ControlHandle == this.lastPtr)
+                    {
+                        this.textBox1.Text = sendData.ControlName;                        
+                    }
+
+                    this.lastPtr = IntPtr.Zero;
                 }
             }
             else
