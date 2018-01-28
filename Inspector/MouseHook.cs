@@ -5,13 +5,14 @@
     using System.Drawing;
     using System.Reflection;
     using System.Runtime.InteropServices;
+    using System.Windows.Forms;
 
-    public sealed class MouseHook : IDisposable
+    public sealed class MouseHook
     {
         // this field exists because of hungry GC can collect delegate, which leads to a exception
         // Managed Debugging Assistant 'CallbackOnCollectedDelegate'
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-        private readonly Native.HookDelegate hookDelegate;
+        private Native.HookDelegate hookDelegate;
 
         private IntPtr hook;
 
@@ -21,7 +22,13 @@
 
         private int lastY = int.MinValue;
 
-        public MouseHook()
+        public static readonly MouseHook Instance = new MouseHook();
+
+        private MouseHook()
+        {            
+        }
+
+        public void Hook()
         {
             this.hookDelegate = this.MouseHookProc;
             var mainModuleHandle = Marshal.GetHINSTANCE(Assembly.GetExecutingAssembly().GetModules()[0]);
@@ -29,6 +36,7 @@
             this.hook = Native.SetWindowsHookEx(Native.WH_MOUSE_LL, this.hookDelegate, mainModuleHandle, 0);
             if (this.hook != IntPtr.Zero)
             {
+                Application.ApplicationExit += (sender, args) => this.Unhook();
                 return;
             }
 
@@ -36,7 +44,7 @@
             throw new Win32Exception(errorCode);
         }
 
-        public void Dispose()
+        private void Unhook()
         {
             if (this.hook == IntPtr.Zero)
             {

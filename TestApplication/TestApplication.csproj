@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CopyDataHandler.cs" />
     <Compile Include="TestForm.cs">
       <SubType>Form</SubType>
     </Compile>
