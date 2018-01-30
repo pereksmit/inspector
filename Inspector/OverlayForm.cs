@@ -1,5 +1,6 @@
 ﻿namespace Inspector
 {
+    using System;
     using System.Drawing;
     using System.Drawing.Drawing2D;
     using System.Windows.Forms;
@@ -8,18 +9,21 @@
     {
         private const int BoundFrameWidth = 4;
 
+        private const int BoundFramePadding = 6;
+
         private Pen pen;
 
         public OverlayForm()
         {
             this.FormBorderStyle = FormBorderStyle.None;
+            this.StartPosition = FormStartPosition.Manual;
             this.TopMost = true;
             this.ControlBox = false;
             this.ShowInTaskbar = false;
             this.BackColor = Color.FromArgb(1, 2, 3); // some exotic color
             this.TransparencyKey = this.BackColor;
 
-            this.pen = new Pen(Color.Red, BoundFrameWidth) {Alignment = PenAlignment.Outset};
+            this.pen = new Pen(Color.Red, BoundFrameWidth) {Alignment = PenAlignment.Inset};
         }
 
         public Rectangle ControlBounds { get; set; }
@@ -43,38 +47,27 @@
                 return;
             }
 
-            var b = this.NormalizeBoundingRectangle(this.ControlBounds);
+            var b = this.ControlBounds;
+            b.Offset(-this.Left, -this.Top);
+
+            b = this.NormalizeBoundingRectangle(b);
             e.Graphics.DrawRectangle(this.pen, b);
         }
 
         private Rectangle NormalizeBoundingRectangle(Rectangle rect)
         {
-            rect.Inflate(BoundFrameWidth, BoundFrameWidth);
+            rect.Inflate(BoundFramePadding, BoundFramePadding);
 
             var left = rect.Left;
             var right = rect.Right;
             var top = rect.Top;
             var bottom = rect.Bottom;
 
-            if (left < BoundFrameWidth / 2)
-            {
-                left = BoundFrameWidth / 2;
-            }
+            left = Math.Max(left, 0);
+            right = Math.Min(right, this.Right - this.Left);
 
-            if (bottom > this.Height - BoundFrameWidth / 2)
-            {
-                bottom = this.Height - BoundFrameWidth / 2;
-            }
-
-            if (top < BoundFrameWidth / 2)
-            {
-                top = BoundFrameWidth / 2;
-            }
-
-            if (right > this.Width - BoundFrameWidth / 2)
-            {
-                right = this.Width - BoundFrameWidth / 2;
-            }
+            top = Math.Max(top, 0);
+            bottom = Math.Min(bottom, this.Bottom - this.Top);
 
             var result = Rectangle.FromLTRB(left, top, right, bottom);
             return result;

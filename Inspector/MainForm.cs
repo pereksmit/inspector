@@ -1,6 +1,7 @@
 ﻿namespace Inspector
 {
     using System;
+    using System.Drawing;
     using System.Runtime.InteropServices;
     using System.Windows.Forms;
 
@@ -24,15 +25,37 @@
 
         private static OverlayForm CreateOverlayForm()
         {
+            var desktop = GetWholeDesktopDimensions();
+            
             var res = new OverlayForm
             {
-                Left = 0,
-                Top = 0,
-                Width = Screen.PrimaryScreen.Bounds.Width,
-                Height = Screen.PrimaryScreen.Bounds.Height
+                Left = desktop.Left,
+                Top = desktop.Top,
+                Width = desktop.Width,
+                Height = desktop.Height
             };
 
             return res;
+        }
+
+        private static Rectangle GetWholeDesktopDimensions()
+        {
+            var minx = int.MaxValue;
+            var maxx = int.MinValue;
+            var miny = int.MaxValue;
+            var maxy = int.MinValue;
+
+            foreach (var screen in Screen.AllScreens)
+            {
+                var bounds = screen.Bounds;
+                minx = Math.Min(minx, bounds.X);
+                miny = Math.Min(miny, bounds.Y);
+                maxx = Math.Max(maxx, bounds.Right);
+                maxy = Math.Max(maxy, bounds.Bottom);
+            }
+
+            var result = Rectangle.FromLTRB(minx, miny, maxx, maxy);
+            return result;
         }
 
         private void MouseHookMouseMove(object sender, MouseMoveEventArgs e)
