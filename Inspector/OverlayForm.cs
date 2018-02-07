@@ -38,6 +38,11 @@
             }
         }
 
+        public void SetTopMost()
+        {
+            Native.SetWindowPos(this.Handle, Native.HWND_TOPMOST, 0, 0, 0, 0, Native.TOPMOST_FLAGS);
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);

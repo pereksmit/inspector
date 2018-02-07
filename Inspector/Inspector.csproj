@@ -34,6 +34,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -50,6 +53,7 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="MouseHook.cs" />
+    <Compile Include="MouseDownEventArgs.cs" />
     <Compile Include="MouseMoveEventArgs.cs" />
     <Compile Include="Native.cs" />
     <Compile Include="Program.cs" />

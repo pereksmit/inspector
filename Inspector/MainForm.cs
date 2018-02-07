@@ -21,6 +21,12 @@
 
             MouseHook.Instance.Hook();
             MouseHook.Instance.MouseMove += this.MouseHookMouseMove;
+            MouseHook.Instance.MouseDown += this.InstanceOnMouseDown;
+        }
+
+        private void InstanceOnMouseDown(object sender, MouseDownEventArgs ea)
+        {
+            this.textBox1.Text = ea.Hwnd.ToString();
         }
 
         private static OverlayForm CreateOverlayForm()
@@ -60,12 +66,7 @@
 
         private void MouseHookMouseMove(object sender, MouseMoveEventArgs e)
         {
-            this.overlay.ControlBounds = e.ControlRectangle;
-            this.overlay.Invalidate();
-
-            this.lastPtr = e.Hwnd;
-            this.textBox1.Clear();
-            this.Send(e.Hwnd);
+            this.Send(e.ControlHandle, e.X, e.Y);
         }
 
         protected override void OnLoad(EventArgs e)
@@ -89,11 +90,11 @@
             return retval;
         }
 
-        private void Send(IntPtr controlHandle)
+        private void Send(IntPtr controlHandle, int x, int y)
         {
             var receiver = controlHandle;
 
-            var data = new SendData {ControlHandle = controlHandle};
+            var data = new SendData {ControlHandle = controlHandle, X = x, Y = y};
             var dataPtr = IntPtrAlloc(data);
 
             var copyData = new Native.COPYDATASTRUCT
@@ -104,6 +105,8 @@
             };
 
             var ptrCopyData = IntPtrAlloc(copyData);
+
+            this.lastPtr = controlHandle;
             
             Native.SendMessage(receiver, Native.WM_COPYDATA, this.Handle, ptrCopyData);
 
@@ -122,7 +125,15 @@
                     var sendData = Marshal.PtrToStructure<SendData>(copyData.lpData);
                     if (sendData.ControlHandle == this.lastPtr)
                     {
-                        this.textBox1.Text = sendData.ControlName;                        
+                        this.textBox1.Text = sendData.ControlName;
+                        if (this.overlay.ControlBounds != sendData.Rectangle)
+                        {
+                            this.textBox1.Text = sendData.ControlName + ": " + sendData.Rectangle;
+
+                            this.overlay.ControlBounds = sendData.Rectangle;
+                            this.overlay.SetTopMost();
+                            this.overlay.Invalidate();
+                        }
                     }
 
                     this.lastPtr = IntPtr.Zero;
@@ -140,6 +151,14 @@
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
             // ReSharper disable once FieldCanBeMadeReadOnly.Local
             public string ControlName;
+
+            [MarshalAs(UnmanagedType.I4)]
+            public int X;
+
+            [MarshalAs(UnmanagedType.I4)]
+            public int Y;
+
+            public Rectangle Rectangle;
 
             public IntPtr ControlHandle;
         }

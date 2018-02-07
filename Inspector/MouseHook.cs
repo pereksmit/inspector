@@ -2,30 +2,28 @@
 {
     using System;
     using System.ComponentModel;
+    using System.Diagnostics;
     using System.Drawing;
-    using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Windows.Forms;
 
     public sealed class MouseHook
     {
+        public static readonly MouseHook Instance = new MouseHook();
+
+        private IntPtr hook;
+
         // this field exists because of hungry GC can collect delegate, which leads to a exception
         // Managed Debugging Assistant 'CallbackOnCollectedDelegate'
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private Native.HookDelegate hookDelegate;
 
-        private IntPtr hook;
-
-        private IntPtr lastHwnd = IntPtr.Zero;
-
         private int lastX = int.MinValue;
 
         private int lastY = int.MinValue;
 
-        public static readonly MouseHook Instance = new MouseHook();
-
         private MouseHook()
-        {            
+        {
         }
 
         public void Hook()
@@ -36,7 +34,8 @@
             }
 
             this.hookDelegate = this.MouseHookProc;
-            var mainModuleHandle = Marshal.GetHINSTANCE(Assembly.GetExecutingAssembly().GetModules()[0]);
+
+            var mainModuleHandle = GetNainModuleHandle();
 
             this.hook = Native.SetWindowsHookEx(Native.WH_MOUSE_LL, this.hookDelegate, mainModuleHandle, 0);
             if (this.hook != IntPtr.Zero)
@@ -47,6 +46,18 @@
 
             var errorCode = Marshal.GetLastWin32Error();
             throw new Win32Exception(errorCode);
+        }
+
+        private static IntPtr GetNainModuleHandle()
+        {
+            using (var p = Process.GetCurrentProcess())
+            {
+                using (var m = p.MainModule)
+                {
+                    var result = Native.GetModuleHandle(m.ModuleName);
+                    return result;
+                }
+            }
         }
 
         private void Unhook()
@@ -68,28 +79,32 @@
 
         public event EventHandler<MouseMoveEventArgs> MouseMove;
 
-        private IntPtr MouseHookProc(int code, IntPtr wparam, IntPtr lparam)
+        public event EventHandler<MouseDownEventArgs> MouseDown;
+
+        private IntPtr MouseHookProc(int code, int wparam, IntPtr lparam)
         {
-            var mouse = (Native.MouseHookStruct) Marshal.PtrToStructure(lparam, typeof(Native.MouseHookStruct));
+            var mouse = (Native.MouseHookStruct)Marshal.PtrToStructure(lparam, typeof(Native.MouseHookStruct));
 
             var x = mouse.pt.x;
             var y = mouse.pt.y;
 
-            if (x != this.lastX || y != this.lastY)
+            if (wparam == Native.WM_LBUTTONDOWN)
+            { 
+                var w = Native.WindowFromPoint(new Point(x, y));
+                if (w != IntPtr.Zero)
+                {
+                    this.OnMouseDown(new MouseDownEventArgs(w));
+                }
+            }
+            else if (x != this.lastX || y != this.lastY)
             {
                 this.lastX = x;
                 this.lastY = y;
 
                 var w = Native.WindowFromPoint(new Point(x, y));
-                if (w != IntPtr.Zero && w != this.lastHwnd)
+                if (w != IntPtr.Zero)
                 {
-                    this.lastHwnd = w;
-
-                    Native.RECT rect;
-                    if (Native.GetWindowRect(w, out rect))
-                    {
-                        this.OnMouseMove(new MouseMoveEventArgs(w, rect));
-                    }
+                    this.OnMouseMove(new MouseMoveEventArgs(w, x, y));
                 }
             }
 
@@ -99,6 +114,11 @@
         private void OnMouseMove(MouseMoveEventArgs e)
         {
             this.MouseMove?.Invoke(this, e);
+        }
+
+        private void OnMouseDown(MouseDownEventArgs e)
+        {
+            this.MouseDown?.Invoke(this, e);
         }
     }
 }

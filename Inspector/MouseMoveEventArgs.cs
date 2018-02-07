@@ -1,18 +1,20 @@
 ﻿namespace Inspector
 {
     using System;
-    using System.Drawing;
 
     public sealed class MouseMoveEventArgs : EventArgs
     {
-        public MouseMoveEventArgs(IntPtr hwnd, Rectangle controlRectangle)
+        public MouseMoveEventArgs(IntPtr controlHandle, int x, int y)
         {
-            this.Hwnd = hwnd;
-            this.ControlRectangle = controlRectangle;
+            this.ControlHandle = controlHandle;
+            this.X = x;
+            this.Y = y;
         }
 
-        public IntPtr Hwnd { get; }
+        public IntPtr ControlHandle { get; }
 
-        public Rectangle ControlRectangle { get; }
+        public int X { get; }
+
+        public int Y { get; }
     }
 }
