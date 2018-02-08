@@ -12,6 +12,15 @@ namespace Inspector
 
         public delegate IntPtr HookDelegate(int code, int wParam, IntPtr lParam);
 
+        public delegate void WinEventDelegate(
+            IntPtr hWinEventHook,
+            uint eventType,
+            IntPtr hWnd,
+            int idObject,
+            int idChild,
+            uint dwEventThread,
+            uint dwmsEventTime);
+
         public const int WM_LBUTTONDOWN = 0x0201;
 
         public const int WH_MOUSE_LL = 14;
@@ -23,6 +32,12 @@ namespace Inspector
         public const uint SWP_NOMOVE = 0x0002;
 
         public const uint TOPMOST_FLAGS = SWP_NOMOVE | SWP_NOSIZE;
+
+        public const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+
+        public const uint WINEVENT_OUTOFCONTEXT = 0;
+
+        public const uint EVENT_OBJECT_CREATE = 0x8000;
 
         public static int WM_COPYDATA = 0x004A;
 
@@ -61,9 +76,22 @@ namespace Inspector
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr GetModuleHandle(string lpModuleName);
 
-        [DllImport("user32.dll")] 
+        [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetWinEventHook(
+            uint eventMin,
+            uint eventMax,
+            IntPtr hmodWinEventProc,
+            WinEventDelegate lpfnWinEventProc,
+            uint idProcess,
+            uint idThread,
+            uint dwFlags);
+
+        [DllImport("user32.dll")]
+        public static extern bool UnhookWinEvent(IntPtr hWinEventHook);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct COPYDATASTRUCT

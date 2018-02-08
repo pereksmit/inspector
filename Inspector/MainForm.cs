@@ -131,7 +131,6 @@
                             this.textBox1.Text = sendData.ControlName + ": " + sendData.Rectangle;
 
                             this.overlay.ControlBounds = sendData.Rectangle;
-                            this.overlay.SetTopMost();
                             this.overlay.Invalidate();
                         }
                     }

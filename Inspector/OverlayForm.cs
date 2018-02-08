@@ -11,6 +11,13 @@
 
         private const int BoundFramePadding = 6;
 
+        private IntPtr winEventHook;
+
+        // this field exists because of hungry GC can collect delegate, which leads to a exception
+        // Managed Debugging Assistant 'CallbackOnCollectedDelegate'
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+        private readonly Native.WinEventDelegate procDelegate;
+
         private Pen pen;
 
         public OverlayForm()
@@ -23,7 +30,17 @@
             this.BackColor = Color.FromArgb(1, 2, 3); // some exotic color
             this.TransparencyKey = this.BackColor;
 
-            this.pen = new Pen(Color.Red, BoundFrameWidth) {Alignment = PenAlignment.Inset};
+            this.pen = new Pen(Color.Red, BoundFrameWidth) { Alignment = PenAlignment.Inset };
+
+            this.procDelegate = this.ProcDelegate;
+            this.winEventHook = Native.SetWinEventHook(
+                Native.EVENT_SYSTEM_FOREGROUND,
+                Native.EVENT_OBJECT_CREATE,
+                IntPtr.Zero,
+                this.procDelegate,
+                0,
+                0,
+                Native.WINEVENT_OUTOFCONTEXT);
         }
 
         public Rectangle ControlBounds { get; set; }
@@ -38,7 +55,12 @@
             }
         }
 
-        public void SetTopMost()
+        private void ProcDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hWnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+        {
+            this.SetTopMost();
+        }
+
+        private void SetTopMost()
         {
             Native.SetWindowPos(this.Handle, Native.HWND_TOPMOST, 0, 0, 0, 0, Native.TOPMOST_FLAGS);
         }
@@ -84,6 +106,12 @@
 
             this.pen.Dispose();
             this.pen = null;
+
+            if (this.winEventHook != IntPtr.Zero)
+            {
+                Native.UnhookWinEvent(this.winEventHook);
+                this.winEventHook = IntPtr.Zero;
+            }
         }
     }
 }
